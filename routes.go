@@ -20,8 +20,7 @@ func routes(isDebug bool) *gin.Engine {
 	var (
 		db    *gorm.DB       = config.SetupConnection()
 		redis cache.AppCache = cache.NewRedisCache(host, port, rdb, redisPass)
-		// jwtService services.JWTService = services.NewJWTService(redis)
-		comp Composition = ControllerInstance(db, redis)
+		comp  Composition    = ControllerInstance(db, redis)
 	)
 
 	if isDebug {
@@ -43,6 +42,12 @@ func routes(isDebug bool) *gin.Engine {
 		profile.POST("/", comp.profile.CreateProfile)
 		profile.GET("/:id", comp.profile.GetProfile)
 		profile.PUT("/:id", comp.profile.UpdateProfile)
+	}
+	workingExperience := routes.Group("/v1/working-experience")
+	{
+		workingExperience.Use(middleware.ProfileValidator(comp.profileRepo, redis))
+		workingExperience.GET("/:id", comp.workExp.GetWorkExp)
+		workingExperience.PUT("/:id", comp.workExp.AddWorkExp)
 	}
 	return engine
 }

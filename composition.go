@@ -10,17 +10,24 @@ import (
 )
 
 type Composition struct {
-	profile controller.ProfileController
+	profileRepo repository.ProfileRepo
+	profile     controller.ProfileController
+	workExp     controller.WorkExperienceController
 }
 
 func ControllerInstance(db *gorm.DB, redis cache.AppCache) Composition {
 	var (
-		profileRepo       repository.ProfileRepo       = repository.NewProfileRepo(db)
-		profileService    services.ProfileService      = services.NewProfileService(redis, profileRepo)
-		profileController controller.ProfileController = controller.NewProfileController(profileService)
+		profileRepo              repository.ProfileRepo              = repository.NewProfileRepo(db)
+		profileService           services.ProfileService             = services.NewProfileService(redis, profileRepo)
+		profileController        controller.ProfileController        = controller.NewProfileController(profileService)
+		workExpRepo              repository.WorkExperienceRepository = repository.NewWorkExperienceRepository(db)
+		workExpService           services.WorkExperienceService      = services.NewWorkExperienceService(workExpRepo)
+		workExperienceController controller.WorkExperienceController = controller.NewWorkExperienceController(workExpService)
 	)
 
 	return Composition{
-		profile: profileController,
+		profileRepo: profileRepo,
+		profile:     profileController,
+		workExp:     workExperienceController,
 	}
 }

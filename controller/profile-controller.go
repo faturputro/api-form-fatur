@@ -6,6 +6,7 @@ import (
 	"dummy/helpers"
 	"dummy/services"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,11 +32,17 @@ func (pc *profileController) GetProfile(ctx *gin.Context) {
 		res helpers.Response
 		err error
 	)
+
+	id, err := strconv.Atoi(ctx.Param("id"))
+
 	if err != nil {
 		res = helpers.BuildErrorResponse("Failed to process request", err.Error(), nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
+	profile, err := pc.s.Get(uint(id))
+	res = helpers.BuildResponse(true, "", profile)
+	ctx.JSON(http.StatusCreated, res)
 }
 
 func (pc *profileController) CreateProfile(ctx *gin.Context) {
@@ -56,5 +63,20 @@ func (pc *profileController) CreateProfile(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, res)
 }
 func (pc *profileController) UpdateProfile(ctx *gin.Context) {
-
+	var (
+		req entities.Profile
+		res helpers.Response
+	)
+	id, err := strconv.Atoi(ctx.Param("id"))
+	err = ctx.Bind(&req)
+	profileId, err := pc.s.Update(req, uint(id))
+	if err != nil {
+		res = helpers.BuildErrorResponse("Something went wrong", err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	res = helpers.BuildResponse(true, "Profile successfully updated.", dto.Profile{
+		ProfileCode: profileId,
+	})
+	ctx.JSON(http.StatusCreated, res)
 }

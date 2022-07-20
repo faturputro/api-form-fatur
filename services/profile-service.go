@@ -4,12 +4,13 @@ import (
 	"dummy/cache"
 	"dummy/entities"
 	"dummy/repository"
+	"errors"
 )
 
 type ProfileService interface {
 	Create(p entities.Profile) (uint, error)
-	Update(p entities.Profile) (interface{}, error)
-	Get(profileID int64) (entities.Profile, error)
+	Update(p entities.Profile, id uint) (uint, error)
+	Get(profileID uint) (entities.Profile, error)
 }
 
 type profileService struct {
@@ -30,15 +31,18 @@ func (ps *profileService) Create(p entities.Profile) (uint, error) {
 	return profileId, err
 }
 
-func (ps *profileService) Update(p entities.Profile) (interface{}, error) {
+func (ps *profileService) Update(p entities.Profile, id uint) (uint, error) {
 	var err error
-	return nil, err
+	found, err := ps.repo.FindById(id)
+	if found.ID == 0 {
+		err = errors.New("Profile not found")
+		return 0, err
+	}
+	err = ps.repo.Update(p, id)
+	return id, err
 }
 
-func (ps *profileService) Get(profileId int64) (entities.Profile, error) {
-	var (
-		err     error
-		profile entities.Profile
-	)
+func (ps *profileService) Get(profileId uint) (entities.Profile, error) {
+	profile, err := ps.repo.FindById(profileId)
 	return profile, err
 }

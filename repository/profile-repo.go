@@ -8,8 +8,8 @@ import (
 
 type ProfileRepo interface {
 	Insert(p entities.Profile) (uint, error)
-	Update(p entities.Profile) error
-	FindById(ID int64) error
+	Update(p entities.Profile, id uint) error
+	FindById(ID uint) (entities.Profile, error)
 }
 
 type profileRepo struct {
@@ -28,12 +28,16 @@ func (pr *profileRepo) Insert(p entities.Profile) (uint, error) {
 	return p.ID, err
 }
 
-func (pr *profileRepo) Update(p entities.Profile) error {
-	var err error
-	return err
+func (pr *profileRepo) Update(p entities.Profile, id uint) error {
+	p.ID = id
+	return pr.db.Save(&p).Error
 }
 
-func (pr *profileRepo) FindById(profileID int64) error {
-	var err error
-	return err
+func (pr *profileRepo) FindById(profileID uint) (entities.Profile, error) {
+	var (
+		err     error
+		profile entities.Profile
+	)
+	err = pr.db.First(&profile, profileID).Error
+	return profile, err
 }
